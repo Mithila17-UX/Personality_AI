@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personality Predictor - AI-Powered Personality Analysis</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-brain"></i>
+                <span>PersonalityAI</span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="active">Home</a>
+                <a href="/about">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1>Discover Your Personality Type</h1>
+                <p>Our AI-powered system analyzes your social behavior patterns to predict whether you're an introvert or extrovert. Get instant insights about your personality traits.</p>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <i class="fas fa-users"></i>
+                        <span>95% Accuracy</span>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-clock"></i>
+                        <span>Instant Results</span>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Privacy First</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="personality-cards">
+                    <div class="card introvert">
+                        <i class="fas fa-book"></i>
+                        <h3>Introvert</h3>
+                        <p>Energized by solitude</p>
+                    </div>
+                    <div class="card extrovert">
+                        <i class="fas fa-users"></i>
+                        <h3>Extrovert</h3>
+                        <p>Energized by social interaction</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Prediction Form -->
+    <section class="prediction-section">
+        <div class="container">
+            <div class="form-container">
+                <h2>Take the Personality Test</h2>
+                <p>Answer a few questions about your social behavior to discover your personality type.</p>
+                
+                <form id="personality-form" class="prediction-form">
+                    <div class="form-group">
+                        <label for="time_spent_alone">
+                            <i class="fas fa-clock"></i>
+                            Hours spent alone per day
+                        </label>
+                        <input type="range" id="time_spent_alone" name="time_spent_alone" min="0" max="24" value="8" class="slider">
+                        <div class="range-labels">
+                            <span>0h</span>
+                            <span id="time_spent_alone_value">8h</span>
+                            <span>24h</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="stage_fear">
+                            <i class="fas fa-microphone-slash"></i>
+                            Do you experience stage fear?
+                        </label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="stage_fear" value="1" checked>
+                                <span class="radio-custom"></span>
+                                Yes
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="stage_fear" value="0">
+                                <span class="radio-custom"></span>
+                                No
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="social_event_attendance">
+                            <i class="fas fa-calendar-check"></i>
+                            Social events attended per month
+                        </label>
+                        <input type="range" id="social_event_attendance" name="social_event_attendance" min="0" max="20" value="5" class="slider">
+                        <div class="range-labels">
+                            <span>0</span>
+                            <span id="social_event_attendance_value">5</span>
+                            <span>20</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="going_outside">
+                            <i class="fas fa-walking"></i>
+                            Times going outside per week
+                        </label>
+                        <input type="range" id="going_outside" name="going_outside" min="0" max="14" value="3" class="slider">
+                        <div class="range-labels">
+                            <span>0</span>
+                            <span id="going_outside_value">3</span>
+                            <span>14</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="drained_after_socializing">
+                            <i class="fas fa-battery-empty"></i>
+                            Do you feel drained after socializing?
+                        </label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="drained_after_socializing" value="1" checked>
+                                <span class="radio-custom"></span>
+                                Yes
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="drained_after_socializing" value="0">
+                                <span class="radio-custom"></span>
+                                No
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="friends_circle_size">
+                            <i class="fas fa-user-friends"></i>
+                            Number of close friends
+                        </label>
+                        <input type="range" id="friends_circle_size" name="friends_circle_size" min="0" max="100" value="10" class="slider">
+                        <div class="range-labels">
+                            <span>0</span>
+                            <span id="friends_circle_size_value">10</span>
+                            <span>100</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="post_frequency">
+                            <i class="fas fa-share-alt"></i>
+                            Social media posts per week
+                        </label>
+                        <input type="range" id="post_frequency" name="post_frequency" min="0" max="20" value="2" class="slider">
+                        <div class="range-labels">
+                            <span>0</span>
+                            <span id="post_frequency_value">2</span>
+                            <span>20</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-magic"></i>
+                        Analyze My Personality
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section id="results-section" class="results-section" style="display: none;">
+        <div class="container">
+            <div class="results-container">
+                <div class="result-header">
+                    <h2>Your Personality Analysis</h2>
+                    <div class="confidence-meter">
+                        <span>Confidence: </span>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="confidence-fill"></div>
+                        </div>
+                        <span id="confidence-text">85%</span>
+                    </div>
+                </div>
+
+                <div class="result-cards">
+                    <div class="result-card introvert-result" id="introvert-card">
+                        <div class="card-header">
+                            <i class="fas fa-book"></i>
+                            <h3>Introvert</h3>
+                        </div>
+                        <div class="probability-bar">
+                            <div class="probability-fill" id="introvert-probability"></div>
+                        </div>
+                        <span class="probability-text" id="introvert-percentage">45%</span>
+                    </div>
+
+                    <div class="result-card extrovert-result" id="extrovert-card">
+                        <div class="card-header">
+                            <i class="fas fa-users"></i>
+                            <h3>Extrovert</h3>
+                        </div>
+                        <div class="probability-bar">
+                            <div class="probability-fill" id="extrovert-probability"></div>
+                        </div>
+                        <span class="probability-text" id="extrovert-percentage">55%</span>
+                    </div>
+                </div>
+
+                <div class="prediction-result">
+                    <div class="prediction-badge" id="prediction-badge">
+                        <i class="fas fa-user"></i>
+                        <span id="prediction-text">Extrovert</span>
+                    </div>
+                </div>
+
+                <div class="insights-section">
+                    <h3>Personal Insights</h3>
+                    <div class="insights-list" id="insights-list">
+                        <!-- Insights will be populated here -->
+                    </div>
+                </div>
+
+                <button class="retry-btn" onclick="resetForm()">
+                    <i class="fas fa-redo"></i>
+                    Take Test Again
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>Analyzing your personality...</p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html> 
