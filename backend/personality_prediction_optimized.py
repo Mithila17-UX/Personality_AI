@@ -37,8 +37,8 @@ class OptimizedPersonalityPredictor:
     def load_data(self):
         """Load and explore the dataset"""
         print("Loading data...")
-        self.train_data = pd.read_csv('train.csv')
-        self.test_data = pd.read_csv('test.csv')
+        self.train_data = pd.read_csv('backend/train.csv')
+        self.test_data = pd.read_csv('backend/test.csv')
         
         print(f"Training data shape: {self.train_data.shape}")
         print(f"Test data shape: {self.test_data.shape}")
@@ -88,7 +88,7 @@ class OptimizedPersonalityPredictor:
             plt.suptitle('')  # Remove default title
             
         plt.tight_layout()
-        plt.savefig('enhanced_data_exploration.png', dpi=300, bbox_inches='tight')
+        plt.savefig('backend/enhanced_data_exploration.png', dpi=300, bbox_inches='tight')
         plt.close()
         
         # Statistical analysis
@@ -493,8 +493,8 @@ class OptimizedPersonalityPredictor:
         })
         
         # Save predictions
-        submission.to_csv('optimized_submission.csv', index=False)
-        print("Optimized predictions saved to optimized_submission.csv")
+        submission.to_csv('backend/optimized_submission.csv', index=False)
+        print("Optimized predictions saved to backend/optimized_submission.csv")
         
         # Display prediction distribution
         print("\nPrediction distribution:")

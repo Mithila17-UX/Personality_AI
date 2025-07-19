@@ -35,8 +35,8 @@ class AdvancedOptimizer:
         print("Loading and preprocessing data...")
         
         # Load data
-        train_data = pd.read_csv('train.csv')
-        test_data = pd.read_csv('test.csv')
+        train_data = pd.read_csv('backend/train.csv')
+        test_data = pd.read_csv('backend/test.csv')
         
         # Handle categorical variables
         categorical_features = ['Stage_fear', 'Drained_after_socializing']
@@ -305,7 +305,7 @@ class AdvancedOptimizer:
         shap.summary_plot(shap_values, self.X_val, feature_names=self.feature_columns, show=False)
         plt.title(f'SHAP Summary Plot - {best_model_name}')
         plt.tight_layout()
-        plt.savefig('shap_summary.png', dpi=300, bbox_inches='tight')
+        plt.savefig('backend/shap_summary.png', dpi=300, bbox_inches='tight')
         plt.close()
         
         # Plot SHAP bar plot
@@ -313,7 +313,7 @@ class AdvancedOptimizer:
         shap.summary_plot(shap_values, self.X_val, feature_names=self.feature_columns, plot_type='bar', show=False)
         plt.title(f'SHAP Feature Importance - {best_model_name}')
         plt.tight_layout()
-        plt.savefig('shap_importance.png', dpi=300, bbox_inches='tight')
+        plt.savefig('backend/shap_importance.png', dpi=300, bbox_inches='tight')
         plt.close()
         
         self.shap_values[best_model_name] = shap_values
@@ -339,8 +339,8 @@ class AdvancedOptimizer:
         })
         
         # Save predictions
-        submission.to_csv('advanced_optimized_submission.csv', index=False)
-        print("Advanced optimized predictions saved to advanced_optimized_submission.csv")
+        submission.to_csv('backend/advanced_optimized_submission.csv', index=False)
+        print("Advanced optimized predictions saved to backend/advanced_optimized_submission.csv")
         
         # Display prediction distribution
         print("\nPrediction distribution:")
