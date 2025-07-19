@@ -120,12 +120,15 @@ def predict():
         # Get personality insights
         insights = get_personality_insights(input_data.iloc[0], prediction)
         
+        # Fix probability mapping based on target encoder classes
+        # Target encoder classes: ['Extrovert', 'Introvert']
+        # So prediction_proba[0][0] = Extrovert probability, prediction_proba[0][1] = Introvert probability
         return jsonify({
             'success': True,
             'prediction': prediction,
             'confidence': float(confidence),
-            'introvert_probability': float(prediction_proba[0][0]),
-            'extrovert_probability': float(prediction_proba[0][1]),
+            'extrovert_probability': float(prediction_proba[0][0]),
+            'introvert_probability': float(prediction_proba[0][1]),
             'insights': insights
         })
         

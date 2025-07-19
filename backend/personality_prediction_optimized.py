@@ -37,8 +37,8 @@ class OptimizedPersonalityPredictor:
     def load_data(self):
         """Load and explore the dataset"""
         print("Loading data...")
-        self.train_data = pd.read_csv('backend/train.csv')
-        self.test_data = pd.read_csv('backend/test.csv')
+        self.train_data = pd.read_csv('train.csv')
+        self.test_data = pd.read_csv('test.csv')
         
         print(f"Training data shape: {self.train_data.shape}")
         print(f"Test data shape: {self.test_data.shape}")
@@ -76,7 +76,8 @@ class OptimizedPersonalityPredictor:
             
         # Correlation heatmap
         plt.subplot(3, 4, 7)
-        correlation_matrix = self.train_data[numerical_features + ['Personality']].corr()
+        # Create correlation matrix only for numerical features
+        correlation_matrix = self.train_data[numerical_features].corr()
         sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', center=0)
         plt.title('Feature Correlation Matrix')
         
@@ -88,7 +89,7 @@ class OptimizedPersonalityPredictor:
             plt.suptitle('')  # Remove default title
             
         plt.tight_layout()
-        plt.savefig('backend/enhanced_data_exploration.png', dpi=300, bbox_inches='tight')
+        plt.savefig('enhanced_data_exploration.png', dpi=300, bbox_inches='tight')
         plt.close()
         
         # Statistical analysis
@@ -253,10 +254,14 @@ class OptimizedPersonalityPredictor:
         X_train_rf = selector_rf.fit_transform(X_train_scaled, y_train)
         X_val_rf = selector_rf.transform(X_val_scaled)
         
-        # Choose the better feature selection method
-        rf_selector.fit(X_train_scaled, y_train)
-        kbest_score = rf_selector.score(X_val_kbest, y_val)
-        rf_score = rf_selector.score(X_val_rf, y_val)
+        # Choose the better feature selection method by training separate models
+        rf_kbest = RandomForestClassifier(n_estimators=100, random_state=42)
+        rf_kbest.fit(X_train_kbest, y_train)
+        kbest_score = rf_kbest.score(X_val_kbest, y_val)
+        
+        rf_rf = RandomForestClassifier(n_estimators=100, random_state=42)
+        rf_rf.fit(X_train_rf, y_train)
+        rf_score = rf_rf.score(X_val_rf, y_val)
         
         if kbest_score > rf_score:
             self.X_train = X_train_kbest
@@ -359,18 +364,12 @@ class OptimizedPersonalityPredictor:
             print(f"{name} - Best CV score: {random_search.best_score_:.4f}")
             print(f"{name} - Validation accuracy: {accuracy:.4f}")
             
-        # For linear models, use scaled data
+        # For linear models, use scaled data (skip SVM due to performance issues)
         linear_models = {
-            'SVM': SVC(probability=True, random_state=42),
             'LogisticRegression': LogisticRegression(random_state=42, max_iter=1000)
         }
         
         linear_param_grids = {
-            'SVM': {
-                'C': [0.1, 1, 10, 100],
-                'gamma': ['scale', 'auto', 0.001, 0.01, 0.1],
-                'kernel': ['rbf', 'poly']
-            },
             'LogisticRegression': {
                 'C': [0.1, 1, 10, 100],
                 'solver': ['liblinear', 'saga'],
@@ -405,7 +404,7 @@ class OptimizedPersonalityPredictor:
         # Get all trained models
         base_models = []
         for name, model in self.models.items():
-            if name in ['SVM', 'LogisticRegression']:
+            if name in ['LogisticRegression']:
                 base_models.append((name, model))
             else:
                 base_models.append((name, model))
@@ -421,7 +420,7 @@ class OptimizedPersonalityPredictor:
         )
         
         # Train ensemble
-        if any(name in ['SVM', 'LogisticRegression'] for name in self.models.keys()):
+        if any(name in ['LogisticRegression'] for name in self.models.keys()):
             self.ensemble.fit(self.X_train_scaled, self.y_train)
             y_pred_ensemble = self.ensemble.predict(self.X_val_scaled)
         else:
@@ -493,8 +492,8 @@ class OptimizedPersonalityPredictor:
         })
         
         # Save predictions
-        submission.to_csv('backend/optimized_submission.csv', index=False)
-        print("Optimized predictions saved to backend/optimized_submission.csv")
+        submission.to_csv('optimized_submission.csv', index=False)
+        print("Optimized predictions saved to optimized_submission.csv")
         
         # Display prediction distribution
         print("\nPrediction distribution:")
