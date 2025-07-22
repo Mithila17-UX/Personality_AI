@@ -181,4 +181,5 @@ if __name__ == '__main__':
     print("Starting Flask app...")
     # Use environment variable for debug mode
     debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
-    app.run(debug=debug_mode, host='0.0.0.0', port=int(os.environ.get('PORT', 5000))) 
+    port = int(os.environ.get("PORT", 10000))
+    app.run(debug=debug_mode, host="0.0.0.0", port=port) 
