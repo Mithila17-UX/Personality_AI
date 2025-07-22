@@ -126,6 +126,14 @@ function displayResults(result) {
     const insightsList = document.getElementById('insights-list');
     insightsList.innerHTML = '';
     
+    // Add warning if present
+    if (result.warning) {
+        const warningItem = document.createElement('div');
+        warningItem.className = 'insight-item warning';
+        warningItem.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${result.warning}`;
+        insightsList.appendChild(warningItem);
+    }
+    
     result.insights.forEach(insight => {
         const insightItem = document.createElement('div');
         insightItem.className = 'insight-item';

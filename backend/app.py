@@ -39,46 +39,68 @@ def load_model():
     global model, scaler, target_encoder, feature_columns, model_loaded
     
     try:
-        # Check if model files exist
-        model_path = Path('model.joblib')
-        scaler_path = Path('scaler.joblib')
-        target_encoder_path = Path('target_encoder.joblib')
-        feature_columns_path = Path('feature_columns.joblib')
+        # Get the current directory and check for model files
+        current_dir = Path(__file__).parent
+        logger.info(f"Current directory: {current_dir}")
+        
+        # Check if model files exist in current directory
+        model_path = current_dir / 'model.joblib'
+        scaler_path = current_dir / 'scaler.joblib'
+        target_encoder_path = current_dir / 'target_encoder.joblib'
+        feature_columns_path = current_dir / 'feature_columns.joblib'
+        
+        logger.info(f"Checking for model files in: {current_dir}")
+        logger.info(f"Model path exists: {model_path.exists()}")
+        logger.info(f"Scaler path exists: {scaler_path.exists()}")
+        logger.info(f"Target encoder path exists: {target_encoder_path.exists()}")
+        logger.info(f"Feature columns path exists: {feature_columns_path.exists()}")
         
         if not model_path.exists():
             logger.warning("Model files not found. Attempting to train model...")
             if PersonalityPredictor is None:
-                raise RuntimeError("PersonalityPredictor not available for training")
+                logger.error("PersonalityPredictor not available for training")
+                model_loaded = False
+                return
             
-            # Train the model
-            predictor = PersonalityPredictor()
-            predictor.load_data()
-            predictor.preprocess_data()
-            predictor.prepare_features()
-            predictor.model_scores = predictor.train_models()
-            
-            # Save the best model and preprocessing objects
-            best_model_name = max(predictor.model_scores, key=predictor.model_scores.get)
-            model = predictor.models[best_model_name]
-            scaler = predictor.scaler
-            target_encoder = predictor.target_encoder
-            feature_columns = predictor.feature_columns
-            
-            # Save model and preprocessing objects
-            joblib.dump(model, model_path)
-            joblib.dump(scaler, scaler_path)
-            joblib.dump(target_encoder, target_encoder_path)
-            joblib.dump(feature_columns, feature_columns_path)
-            
-            logger.info("Model trained and saved successfully!")
+            try:
+                # Train the model
+                predictor = PersonalityPredictor()
+                predictor.load_data()
+                predictor.preprocess_data()
+                predictor.prepare_features()
+                predictor.model_scores = predictor.train_models()
+                
+                # Save the best model and preprocessing objects
+                best_model_name = max(predictor.model_scores, key=predictor.model_scores.get)
+                model = predictor.models[best_model_name]
+                scaler = predictor.scaler
+                target_encoder = predictor.target_encoder
+                feature_columns = predictor.feature_columns
+                
+                # Save model and preprocessing objects
+                joblib.dump(model, model_path)
+                joblib.dump(scaler, scaler_path)
+                joblib.dump(target_encoder, target_encoder_path)
+                joblib.dump(feature_columns, feature_columns_path)
+                
+                logger.info("Model trained and saved successfully!")
+            except Exception as training_error:
+                logger.error(f"Failed to train model: {training_error}")
+                model_loaded = False
+                return
         else:
             # Load saved model and preprocessing objects
             logger.info("Loading pre-trained model...")
-            model = joblib.load(model_path)
-            scaler = joblib.load(scaler_path)
-            target_encoder = joblib.load(target_encoder_path)
-            feature_columns = joblib.load(feature_columns_path)
-            logger.info("Model loaded successfully!")
+            try:
+                model = joblib.load(model_path)
+                scaler = joblib.load(scaler_path)
+                target_encoder = joblib.load(target_encoder_path)
+                feature_columns = joblib.load(feature_columns_path)
+                logger.info("Model loaded successfully!")
+            except Exception as load_error:
+                logger.error(f"Failed to load model files: {load_error}")
+                model_loaded = False
+                return
         
         model_loaded = True
         logger.info("Model initialization completed successfully")
@@ -86,7 +108,6 @@ def load_model():
     except Exception as e:
         logger.error(f"Failed to load model: {e}")
         model_loaded = False
-        raise
 
 def validate_input_data(data):
     """Validate and sanitize input data"""
@@ -171,11 +192,43 @@ def predict():
         
         # Check if model is loaded
         if not model_loaded:
-            logger.error("Model not loaded")
-            return jsonify({
-                'success': False,
-                'error': 'Server error: Model not available'
-            }), 500
+            logger.error("Model not loaded - attempting fallback prediction")
+            # Try to provide a fallback prediction based on simple rules
+            try:
+                data = request.get_json()
+                logger.info(f"Fallback prediction with data: {data}")
+                
+                # Simple fallback logic
+                time_alone = float(data.get('time_spent_alone', 8))
+                stage_fear = int(data.get('stage_fear', 1))
+                social_events = float(data.get('social_event_attendance', 3))
+                drained = int(data.get('drained_after_socializing', 1))
+                
+                # Simple introvert/extrovert scoring
+                introvert_score = time_alone + (stage_fear * 5) + (drained * 3) - social_events
+                
+                if introvert_score > 10:
+                    prediction = "Introvert"
+                    confidence = 0.7
+                else:
+                    prediction = "Extrovert"
+                    confidence = 0.7
+                
+                return jsonify({
+                    'success': True,
+                    'result': prediction,
+                    'confidence': confidence,
+                    'extrovert_probability': 1.0 - confidence if prediction == "Introvert" else confidence,
+                    'introvert_probability': confidence if prediction == "Introvert" else 1.0 - confidence,
+                    'insights': [f"Fallback prediction based on basic analysis. Model loading failed."],
+                    'warning': 'Using fallback prediction - model not available'
+                })
+            except Exception as fallback_error:
+                logger.error(f"Fallback prediction also failed: {fallback_error}")
+                return jsonify({
+                    'success': False,
+                    'error': 'Server error: Model not available. Please try again later.'
+                }), 500
         
         # Get and validate input data
         try:
@@ -340,14 +393,23 @@ def health_check():
     """Health check endpoint"""
     return jsonify({
         'status': 'healthy',
-        'model_loaded': model_loaded
+        'model_loaded': model_loaded,
+        'model_files_exist': {
+            'model.joblib': Path(__file__).parent / 'model.joblib',
+            'scaler.joblib': Path(__file__).parent / 'scaler.joblib',
+            'target_encoder.joblib': Path(__file__).parent / 'target_encoder.joblib',
+            'feature_columns.joblib': Path(__file__).parent / 'feature_columns.joblib'
+        }
     })
 
 if __name__ == '__main__':
     # Load model on startup
     try:
         load_model()
-        print("Model loaded successfully!")
+        if model_loaded:
+            print("Model loaded successfully!")
+        else:
+            print("Warning: Model failed to load. App will start but predictions may fail.")
         print("Starting Flask app...")
     except Exception as e:
         print(f"Failed to load model: {e}")

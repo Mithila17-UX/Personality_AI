@@ -489,6 +489,16 @@ body {
     font-weight: 500;
 }
 
+.insight-item.warning {
+    border-left-color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+}
+
+.insight-item.warning i {
+    color: #ff6b6b;
+    margin-right: 0.5rem;
+}
+
 /* Buttons */
 .retry-btn {
     background: #667eea;
