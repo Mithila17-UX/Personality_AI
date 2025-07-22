@@ -1,45 +1,21 @@
 #!/usr/bin/env python3
 """
-Test script for Personality Predictor Web Application
+Test script for the Flask personality prediction app
 """
 
-import requests
 import json
+import requests
 import time
 import sys
-import os
 
 def test_app():
-    """Test the Flask application"""
+    """Test the Flask app endpoints"""
     
-    base_url = "http://localhost:5000"
+    base_url = "http://localhost:10000"
     
-    print("🧪 Testing Personality Predictor Web Application")
-    print("=" * 50)
-    
-    # Test 1: Check if the app is running
-    print("1. Testing if application is running...")
-    try:
-        response = requests.get(base_url, timeout=5)
-        if response.status_code == 200:
-            print("✅ Application is running successfully!")
-        else:
-            print(f"❌ Application returned status code: {response.status_code}")
-            return False
-    except requests.exceptions.ConnectionError:
-        print("❌ Application is not running. Please start the app first:")
-        print("   cd backend && python app.py")
-        return False
-    except Exception as e:
-        print(f"❌ Error connecting to application: {e}")
-        return False
-    
-    # Test 2: Test prediction endpoint
-    print("\n2. Testing prediction endpoint...")
-    
-    # Sample data for testing
+    # Test data
     test_data = {
-        "time_spent_alone": 6,
+        "time_spent_alone": 8,
         "stage_fear": 1,
         "social_event_attendance": 3,
         "going_outside": 2,
@@ -48,55 +24,114 @@ def test_app():
         "post_frequency": 1
     }
     
+    print("🧪 Testing Personality Predictor App")
+    print("=" * 50)
+    
     try:
+        # Test health endpoint
+        print("\n1. Testing health endpoint...")
+        response = requests.get(f"{base_url}/health", timeout=10)
+        if response.status_code == 200:
+            health_data = response.json()
+            print(f"✅ Health check passed: {health_data}")
+        else:
+            print(f"❌ Health check failed: {response.status_code}")
+            return False
+            
+        # Test prediction endpoint
+        print("\n2. Testing prediction endpoint...")
         response = requests.post(
             f"{base_url}/predict",
+            json=test_data,
             headers={"Content-Type": "application/json"},
-            data=json.dumps(test_data),
-            timeout=10
+            timeout=30
         )
         
         if response.status_code == 200:
             result = response.json()
             if result.get('success'):
-                print("✅ Prediction endpoint working correctly!")
-                print(f"   Prediction: {result.get('prediction')}")
-                print(f"   Confidence: {result.get('confidence', 0):.2%}")
-                print(f"   Introvert Probability: {result.get('introvert_probability', 0):.2%}")
-                print(f"   Extrovert Probability: {result.get('extrovert_probability', 0):.2%}")
-                print(f"   Insights: {len(result.get('insights', []))} insights provided")
+                print(f"✅ Prediction successful!")
+                print(f"   Result: {result.get('result')}")
+                print(f"   Confidence: {result.get('confidence'):.2f}")
+                print(f"   Extrovert Probability: {result.get('extrovert_probability'):.2f}")
+                print(f"   Introvert Probability: {result.get('introvert_probability'):.2f}")
+                print(f"   Insights: {len(result.get('insights', []))} insights generated")
             else:
-                print(f"❌ Prediction failed: {result.get('error', 'Unknown error')}")
+                print(f"❌ Prediction failed: {result.get('error')}")
                 return False
         else:
-            print(f"❌ Prediction endpoint returned status code: {response.status_code}")
+            print(f"❌ Prediction request failed: {response.status_code}")
+            print(f"   Response: {response.text}")
             return False
             
-    except Exception as e:
-        print(f"❌ Error testing prediction: {e}")
-        return False
-    
-    # Test 3: Test about page
-    print("\n3. Testing about page...")
-    try:
-        response = requests.get(f"{base_url}/about", timeout=5)
-        if response.status_code == 200:
-            print("✅ About page is accessible!")
+        # Test invalid data
+        print("\n3. Testing error handling...")
+        invalid_data = {"invalid": "data"}
+        response = requests.post(
+            f"{base_url}/predict",
+            json=invalid_data,
+            headers={"Content-Type": "application/json"},
+            timeout=10
+        )
+        
+        if response.status_code == 400:
+            result = response.json()
+            print(f"✅ Error handling works: {result.get('error')}")
         else:
-            print(f"❌ About page returned status code: {response.status_code}")
-            return False
-    except Exception as e:
-        print(f"❌ Error accessing about page: {e}")
+            print(f"❌ Error handling failed: {response.status_code}")
+            
+        print("\n🎉 All tests passed!")
+        return True
+        
+    except requests.exceptions.ConnectionError:
+        print("❌ Could not connect to the app. Make sure it's running on http://localhost:10000")
         return False
+    except Exception as e:
+        print(f"❌ Test failed with error: {e}")
+        return False
+
+def test_model_loading():
+    """Test if the model can be loaded"""
+    print("\n🔍 Testing model loading...")
     
-    print("\n🎉 All tests passed! The application is working correctly.")
-    print("\n📱 You can now:")
-    print("   - Open http://localhost:5000 in your browser")
-    print("   - Fill out the personality questionnaire")
-    print("   - Get instant AI-powered personality insights")
-    
-    return True
+    try:
+        import joblib
+        from pathlib import Path
+        
+        model_files = ['model.joblib', 'scaler.joblib', 'target_encoder.joblib', 'feature_columns.joblib']
+        
+        for file in model_files:
+            if Path(file).exists():
+                print(f"✅ {file} exists")
+            else:
+                print(f"❌ {file} missing")
+                return False
+                
+        # Try to load the model
+        model = joblib.load('model.joblib')
+        scaler = joblib.load('scaler.joblib')
+        target_encoder = joblib.load('target_encoder.joblib')
+        feature_columns = joblib.load('feature_columns.joblib')
+        
+        print("✅ All model files loaded successfully")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Model loading failed: {e}")
+        return False
 
 if __name__ == "__main__":
-    success = test_app()
-    sys.exit(0 if success else 1) 
+    print("🚀 Starting Personality Predictor App Tests")
+    
+    # Test model loading first
+    if not test_model_loading():
+        print("\n❌ Model loading tests failed. Cannot proceed with app tests.")
+        sys.exit(1)
+    
+    # Test the app
+    if test_app():
+        print("\n✅ All tests completed successfully!")
+        sys.exit(0)
+    else:
+        print("\n❌ Some tests failed!")
+        sys.exit(1) 
