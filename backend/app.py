@@ -179,4 +179,6 @@ if __name__ == '__main__':
     load_model()
     print("Model loaded successfully!")
     print("Starting Flask app...")
-    app.run(debug=True, host='0.0.0.0', port=5000) 
+    # Use environment variable for debug mode
+    debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(debug=debug_mode, host='0.0.0.0', port=int(os.environ.get('PORT', 5000))) 
