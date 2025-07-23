@@ -96,13 +96,15 @@ function displayResults(result) {
     confidenceFill.style.width = `${confidencePercentage}%`;
     confidenceText.textContent = `${confidencePercentage}%`;
     
-    // Update probabilities
+    // Update probabilities - ensure correct mapping
     const introvertPercentage = Math.round(result.introvert_probability * 100);
     const extrovertPercentage = Math.round(result.extrovert_probability * 100);
     
+    // Update introvert card
     document.getElementById('introvert-probability').style.width = `${introvertPercentage}%`;
     document.getElementById('introvert-percentage').textContent = `${introvertPercentage}%`;
     
+    // Update extrovert card
     document.getElementById('extrovert-probability').style.width = `${extrovertPercentage}%`;
     document.getElementById('extrovert-percentage').textContent = `${extrovertPercentage}%`;
     
@@ -110,9 +112,9 @@ function displayResults(result) {
     const predictionBadge = document.getElementById('prediction-badge');
     const predictionText = document.getElementById('prediction-text');
     
-    predictionText.textContent = result.prediction;
+    predictionText.textContent = result.result;
     
-    if (result.prediction === 'Extrovert') {
+    if (result.result === 'Extrovert') {
         predictionBadge.classList.add('extrovert');
         predictionBadge.querySelector('i').className = 'fas fa-users';
     } else {
@@ -123,6 +125,14 @@ function displayResults(result) {
     // Update insights
     const insightsList = document.getElementById('insights-list');
     insightsList.innerHTML = '';
+    
+    // Add warning if present
+    if (result.warning) {
+        const warningItem = document.createElement('div');
+        warningItem.className = 'insight-item warning';
+        warningItem.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${result.warning}`;
+        insightsList.appendChild(warningItem);
+    }
     
     result.insights.forEach(insight => {
         const insightItem = document.createElement('div');
