@@ -7,6 +7,9 @@ import sys
 import logging
 from pathlib import Path
 
+# Replit-specific configurations
+os.environ['PYTHONPATH'] = os.getcwd()
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -46,23 +49,40 @@ def load_model():
         logger.info(f"Target encoder path exists: {target_encoder_path.exists()}")
         logger.info(f"Feature columns path exists: {feature_columns_path.exists()}")
         
+        # For Replit, also check if files are in the root directory
         if not model_path.exists():
-            logger.error("Model files not found. Cannot proceed without trained model.")
-            model_loaded = False
-            return
-        else:
-            # Load saved model and preprocessing objects
-            logger.info("Loading pre-trained model...")
-            try:
-                model = joblib.load(model_path)
-                scaler = joblib.load(scaler_path)
-                target_encoder = joblib.load(target_encoder_path)
-                feature_columns = joblib.load(feature_columns_path)
-                logger.info("Model loaded successfully!")
-            except Exception as load_error:
-                logger.error(f"Failed to load model files: {load_error}")
+            # Try alternative paths for Replit
+            alt_paths = [
+                Path.cwd() / 'model.joblib',
+                Path.cwd() / 'scaler.joblib',
+                Path.cwd() / 'target_encoder.joblib',
+                Path.cwd() / 'feature_columns.joblib'
+            ]
+            logger.info(f"Trying alternative paths for Replit: {alt_paths}")
+            
+            if not any(p.exists() for p in alt_paths):
+                logger.error("Model files not found. Cannot proceed without trained model.")
                 model_loaded = False
                 return
+            else:
+                # Use alternative paths
+                model_path = Path.cwd() / 'model.joblib'
+                scaler_path = Path.cwd() / 'scaler.joblib'
+                target_encoder_path = Path.cwd() / 'target_encoder.joblib'
+                feature_columns_path = Path.cwd() / 'feature_columns.joblib'
+        
+        # Load saved model and preprocessing objects
+        logger.info("Loading pre-trained model...")
+        try:
+            model = joblib.load(model_path)
+            scaler = joblib.load(scaler_path)
+            target_encoder = joblib.load(target_encoder_path)
+            feature_columns = joblib.load(feature_columns_path)
+            logger.info("Model loaded successfully!")
+        except Exception as load_error:
+            logger.error(f"Failed to load model files: {load_error}")
+            model_loaded = False
+            return
         
         model_loaded = True
         logger.info("Model initialization completed successfully")
@@ -369,12 +389,21 @@ if __name__ == "__main__":
     try:
         load_model()
         if model_loaded:
-            print("Model loaded successfully!")
+            print("✅ Model loaded successfully!")
         else:
-            print("Warning: Model failed to load. App will start but predictions may fail.")
-        print("Starting Flask app...")
+            print("⚠️  Warning: Model failed to load. App will start but predictions may fail.")
+        print("🚀 Starting Flask app...")
+        
+        # Replit-specific startup message
+        port = int(os.environ.get("PORT", 3000))
+        print(f"🌐 App will be available at: http://localhost:{port}")
+        print("📊 Health check available at: /health")
+        print("🎯 Main app available at: /")
+        
     except Exception as e:
-        print(f"Failed to load model: {e}")
-        print("Starting app without model...")
+        print(f"❌ Failed to load model: {e}")
+        print("⚠️  Starting app without model...")
     
-    app.run(host="0.0.0.0", port=3000) 
+    # Get port from environment variable (for Replit) or use default
+    port = int(os.environ.get("PORT", 3000))
+    app.run(host="0.0.0.0", port=port, debug=False) 
